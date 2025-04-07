@@ -28,9 +28,7 @@ public:
         return temp->val;
     }
     void push_front(T value){
-        Node<T>* nodo = new Node<T>;
-        nodo->val = value;
-        nodo->next = head;
+        Node<T>* nodo = new Node<T>(value, head);
         head = nodo;
     }
     void push_back(T value){
