@@ -3,156 +3,155 @@
 using namespace std;
 
 template<typename T>
-struct Node {
+struct Node{
     T val;
     Node* next;
+    Node(T value) : val(value), next(nullptr){}
+    Node(T value, Node<T>* n) : val(value), next(n){}
 };
 
 template<typename T>
-class List {
+class List{
 private:
     Node<T>* head;
-
 public:
-    List() : head(nullptr) {}  // Inicializamos head
-
-    T front() {
-        if (empty()) throw out_of_range("Lista vacía");
+    List() : head(nullptr){}
+    List(Node<T>* h) : head(h){}
+    T front(){
         return head->val;
     }
-
-    T back() {
-        if (empty()) throw out_of_range("Lista vacía");
+    T back(){
         Node<T>* temp = head;
-        while (temp->next != nullptr) {
+        while(temp->next != NULL){
             temp = temp->next;
         }
         return temp->val;
     }
-
-    void push_front(T value) {
-        Node<T>* nuevo = new Node<T>;
-        nuevo->val = value;
-        nuevo->next = head;
-        head = nuevo;
+    void push_front(T value){
+        Node<T>* nodo = new Node<T>;
+        nodo->val = value;
+        nodo->next = head;
+        head = nodo;
     }
-
-    void push_back(T value) {
-        Node<T>* nuevo = new Node<T>;
-        nuevo->val = value;
-        nuevo->next = nullptr;
-
-        if (empty()) {
-            head = nuevo;
-        } else {
-            Node<T>* temp = head;
-            while (temp->next != nullptr) {
-                temp = temp->next;
-            }
-            temp->next = nuevo;
+    void push_back(T value){
+        Node<T>* nodo = new Node<T>(value);
+        if(!head){
+            head = nodo;
+            return;
         }
-    }
-
-    T pop_front() {
-        if (empty()) throw out_of_range("Lista vacía");
         Node<T>* temp = head;
-        T valor = temp->val;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+        temp->next = nodo;
+        nodo->next = NULL;
+    }
+    void pop_front(){
+        if(!head || !head->next) return;
+        Node<T>* temp = head;
         head = head->next;
         delete temp;
-        return valor;
     }
-
-    T pop_back() {
-        if (empty()) throw out_of_range("Lista vacía");
-        
-        T valor;
-        if (head->next == nullptr) {
-            valor = head->val;
+    void pop_back(){
+        if(!head) return;
+        if(head->next == NULL){
             delete head;
-            head = nullptr;
-        } else {
+            head = NULL;
+        }
+        else{
             Node<T>* temp = head;
-            while (temp->next->next != nullptr) {
+            while(temp->next->next != NULL){
                 temp = temp->next;
             }
-            valor = temp->next->val;
             delete temp->next;
-            temp->next = nullptr;
+            temp->next = NULL;
         }
-        return valor;
     }
-
-    T operator[](int index) {
-        if (index < 0 || empty()) throw out_of_range("Índice inválido");
-        
+    T operator [](int num){
         Node<T>* temp = head;
-        for (int i = 0; i < index; ++i) {
-            if (temp->next == nullptr) throw out_of_range("Índice inválido");
+        int cont = 0;
+        while(temp != nullptr && cont < num){
             temp = temp->next;
+            cont++;
         }
+        if (!temp) throw std::out_of_range("Index out of bounds");
         return temp->val;
     }
-
-    bool empty() {
-        return head == nullptr;
+    bool empty(){
+        return head == NULL;
     }
-
-    int size() {
-        int cont = 0;
+    int size(){
         Node<T>* temp = head;
-        while (temp != nullptr) {
+        int cont = 1;
+        while(temp->next != NULL){
             cont++;
             temp = temp->next;
         }
         return cont;
     }
-
-    void clear() {
-        while (head != nullptr) {
+    void clear(){
+        while(head != NULL){
             Node<T>* temp = head;
             head = head->next;
             delete temp;
         }
     }
+    Node<T>* merge(Node<T>* left, Node<T>* right){
+        if(!left) return right;
+        if(!right) return left;
 
-    // Ordenamiento por inserción
-    void sort() {
-        if (empty() || head->next == nullptr) return;
-        
-        Node<T>* sorted = nullptr;
-        Node<T>* curr = head;
-        
-        while (curr != nullptr) {
-            Node<T>* next = curr->next;
-            if (sorted == nullptr || sorted->val >= curr->val) {
-                curr->next = sorted;
-                sorted = curr;
-            } else {
-                Node<T>* temp = sorted;
-                while (temp->next != nullptr && temp->next->val < curr->val) {
-                    temp = temp->next;
-                }
-                curr->next = temp->next;
-                temp->next = curr;
-            }
-            curr = next;
+        if(left->val < right->val){
+            left->next = merge(left->next, right);
+            return left;
         }
-        head = sorted;
+        else{
+            right->next = merge(left, right->next);
+            return right;
+        }
     }
+    Node<T>* MergeSort(Node<T>* node){
+        if(!node || !node->next) return node;
 
-    // Reversión iterativa
-    void reverse() {
-        Node<T>* prev = nullptr;
-        Node<T>* curr = head;
-        Node<T>* next = nullptr;
-        
-        while (curr != nullptr) {
-            next = curr->next;
-            curr->next = prev;
-            prev = curr;
-            curr = next;
+        Node<T>* slow = node;
+        Node<T>* fast = node->next;
+
+        while(fast && fast->next){
+            slow = slow->next;
+            fast = fast->next->next;
         }
+
+        Node<T>* mid = slow->next;
+        slow->next = nullptr;
+
+        Node<T>* left = MergeSort(node);
+        Node<T>* right = MergeSort(mid);
+
+        return merge(left, right);
+    }
+    void sort(){
+        head = MergeSort(head);
+    }
+    void reverse(){
+        Node<T>* prev = nullptr;
+        Node<T>* temp = head;
+        Node<T>* next = nullptr;
+
+        while(temp){
+            next = temp->next;
+            temp->next = prev;
+            prev = temp;
+            temp = next;
+        }
+
         head = prev;
+    }
+    void print(){
+        Node<T>* temp = head;
+        while(temp != NULL){
+            cout << temp->val << " ";
+            temp = temp->next;
+        }
+        cout << endl;
     }
 };
 
